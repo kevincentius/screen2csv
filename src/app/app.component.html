@@ -3,33 +3,73 @@
 
 <div>
   <input type="checkbox" [(ngModel)]="config.invert"/>
-  Invert colors (this is required if the text is light and the background is dark)
+  Invert colors <span class="hint">(this is required if the text is light and the background is dark)</span>
 </div>
 
 <button (click)="downloadAsCsv()">Download CSV</button>
 
-<ng-container *ngIf="inputs.length > 0">
-  Processed ({{processedCount}} / {{inputs.length * config.boxes.length}})
-  
-  <div class="h-box">
-    <!-- config -->
-    <div>
-      <div *ngFor="let box of config.boxes; let i=index">
-        <div>Box {{i}}</div>
-      </div>
+Processed ({{processedCount}} / {{inputs.length * config.boxes.length}})
+
+<div class="h-box">
+  <!-- config -->
+  <div>
+    <div>Configuration</div>
+    <div *ngFor="let box of config.boxes; let i=index">
+      <span class="box-tab-header" [class.selected]="i==selectedBox">{{i}}</span>
+    </div>
+    
+    <div class="config-row">
+      <div class="config-caption">x</div>
+      <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].x"/></div>
     </div>
 
-    <!-- preview -->
-    <div *ngIf="inputs.length > 0 && inputs[selectedInput]" class="preview">
-      <div *ngFor="let box of config.boxes; let i=index" class="box"
-        [style.left]="box.x + 'px'"
-        [style.top]="box.y + 'px'"
-        [style.width]="box.w + 'px'"
-        [style.height]="box.h + 'px'">
-      </div>
-    
-      <img src="{{inputs[selectedInput].imgUrl}}"/>
+    <div class="config-row">
+      <div class="config-caption">y</div>
+      <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].y"/></div>
     </div>
+
+    <div class="config-row">
+      <div class="config-caption">w</div>
+      <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].w"/></div>
+    </div>
+
+    <div class="config-row">
+      <div class="config-caption">h</div>
+      <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].h"/></div>
+    </div>
+
+    <div class="config-row">
+      <div class="config-caption">regex</div>
+      <div class="config-content"><input class="config-long-input" [(ngModel)]="config.boxes[selectedBox].regex"/></div>
+    </div>
+
+    <button (click)="downloadConfig()">Save configuration</button>
+    <button (click)="uploadConfig()">Load configuration</button>
+    <button (click)="saveConfig()" title="The current config will be stored locally on your computer and will be loaded every time you visit this website.">Set as default</button>
   </div>
 
+  <!-- preview -->
+  <div *ngIf="inputs.length > 0 && inputs[selectedInput]" class="preview">
+    <div *ngFor="let box of config.boxes; let i=index" class="box"
+      [style.left]="box.x + 'px'"
+      [style.top]="box.y + 'px'"
+      [style.width]="box.w + 'px'"
+      [style.height]="box.h + 'px'">
+    </div>
+  
+    <img src="{{inputs[selectedInput].imgUrl}}"/>
+  </div>
+</div>
+
+<ng-container *ngIf="inputs.length > 0">
+  <div>Extraction result:</div>
+
+  <table>
+    <tr *ngFor="let row of inputs[selectedInput].parseResult">
+      <td *ngFor="let cell of row">{{cell}}</td>
+    </tr>
+  </table>
 </ng-container>
+
+<input #fileDialogInput id="file-input" type="file" name="name" style="display: none;"
+  (change)="onLoadConfig($event)" />

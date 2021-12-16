@@ -10,3 +10,46 @@
   border: solid red 1px;
   background: #f004;
 }
+
+.hint {
+  opacity: 0.35;
+}
+
+
+
+.box-tab-header {
+  cursor: pointer;
+  background: #eee;
+  display: inline-block;
+  width: 15px;
+  padding: 3px;
+  text-align: center;
+
+  &.selected {
+    background: #ff8;
+    font-weight: bold;
+  }
+}
+
+
+
+.config-row {
+  display: flex;
+}
+
+.config-caption {
+  padding-right: 10px;
+  width: 30px;
+}
+
+.config-content {
+  flex-grow: 1;
+}
+
+.config-short-input {
+  width: 40px;
+}
+
+.config-long-input {
+  width: 100%;
+}

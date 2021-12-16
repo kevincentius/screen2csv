@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { createWorker } from 'tesseract.js';
+import { IdbService } from './services/idb.service';
 
 interface Box {
   x: number;
@@ -18,6 +19,7 @@ interface Config {
 interface InputData {
   name: string;
   imgUrl?: string;
+  parseResult?: string[][];
 }
 
 @Component({
@@ -26,6 +28,8 @@ interface InputData {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  @ViewChild('fileDialogInput') fileDialogInput!: ElementRef<HTMLInputElement>;
+
   config: Config = {
     boxes: [
       {
@@ -51,7 +55,11 @@ export class AppComponent {
 
   processIsRunning = false;
 
-  ngOnInit() {
+  constructor(
+    private idbService: IdbService
+  ) {}
+
+  async ngOnInit() {
     document.onpaste = (event: any) => {
       var items = (event.clipboardData || event.originalEvent.clipboardData).items;
       for (var index in items) {
@@ -72,6 +80,12 @@ export class AppComponent {
         }
       }
     };
+
+    await this.idbService.init();
+    const savedConfig = await this.idbService.get('config') as Config | undefined;
+    if (savedConfig) {
+      this.config = savedConfig;
+    }
   }
 
   async processRemaining() {
@@ -85,6 +99,7 @@ export class AppComponent {
       const inp = this.inputs[this.processedCount];
 
       // process each box
+      inp.parseResult = [];
       for (let boxIndex = 0; boxIndex < this.config.boxes.length; boxIndex++) {
         const box = this.config.boxes[boxIndex];
 
@@ -109,6 +124,7 @@ export class AppComponent {
         const matchesCsv = matches.map(row => [...row]);
         matchesCsv.forEach(match => {
           this.csvData.push([inp.name, boxIndex.toString(), ...match.slice(1)]);
+          inp.parseResult = [...inp.parseResult!, this.csvData[this.csvData.length - 1]];
         });
       }
 
@@ -154,12 +170,39 @@ export class AppComponent {
     
     // push and process
     this.inputs.push(inputData);
+    this.selectedInput = this.inputs.length - 1;
     
     await this.processRemaining();
   }
 
   async downloadAsCsv() {    
     downloadBlob(arrayToCsv(this.csvData), 'export.csv', 'text/csv;charset=utf-8;');
+  }
+
+  downloadConfig() {
+    downloadBlob(JSON.stringify(this.config), 'config.json', 'application/json;charset=utf-8');
+  }
+
+  saveConfig() {
+    this.idbService.put('config', this.config);
+  }
+
+  uploadConfig() {
+    console.log(this.fileDialogInput);
+    this.fileDialogInput.nativeElement.click();
+  }
+
+  onLoadConfig(event: any) {
+    const files = (event.target.files as FileList);
+    if (files.length === 1) {
+      const file = files.item(0)!;
+      
+      const reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = (_event) => setTimeout(() => {
+        this.config = JSON.parse(reader.result as string)
+      });
+    }
   }
 }
 
