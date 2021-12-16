@@ -1,0 +1,35 @@
+
+<app-file-drop-area (fileChange)="onFileChange($event)"></app-file-drop-area>
+
+<div>
+  <input type="checkbox" [(ngModel)]="config.invert"/>
+  Invert colors (this is required if the text is light and the background is dark)
+</div>
+
+<button (click)="downloadAsCsv()">Download CSV</button>
+
+<ng-container *ngIf="inputs.length > 0">
+  Processed ({{processedCount}} / {{inputs.length * config.boxes.length}})
+  
+  <div class="h-box">
+    <!-- config -->
+    <div>
+      <div *ngFor="let box of config.boxes; let i=index">
+        <div>Box {{i}}</div>
+      </div>
+    </div>
+
+    <!-- preview -->
+    <div *ngIf="inputs.length > 0 && inputs[selectedInput]" class="preview">
+      <div *ngFor="let box of config.boxes; let i=index" class="box"
+        [style.left]="box.x + 'px'"
+        [style.top]="box.y + 'px'"
+        [style.width]="box.w + 'px'"
+        [style.height]="box.h + 'px'">
+      </div>
+    
+      <img src="{{inputs[selectedInput].imgUrl}}"/>
+    </div>
+  </div>
+
+</ng-container>

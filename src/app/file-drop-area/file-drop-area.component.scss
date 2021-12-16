@@ -1,0 +1,20 @@
+
+.hint {
+  color: #0005;
+}
+
+.droparea {
+  padding: 20px 20px 10px 20px;
+  text-align: center;
+  border: dashed 1px #0003;
+
+  &.drag-indicator {
+    background: #0005;
+  }
+}
+
+.file-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

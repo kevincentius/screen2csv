@@ -1,0 +1,30 @@
+<div class="droparea" [class.drag-indicator]="dragIndicator" (drop)="onDrop($event)">
+  <div *ngIf="!files || files.length == 0" class="hint">
+    Drop files here...
+  </div>
+
+  <ng-container *ngIf="files">
+    <ng-container *ngFor="let file of files; let i = index">
+      <div class="file-row">
+        <a href="javascript:void(0)" class="file not-link" type="{{file.type}}">
+          {{file.name}}
+        </a>
+        <div style="width: 5px;"></div>
+        <div class="small-icon-button" (click)="onClear(i)"><span class="material-icons">clear</span></div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <div style="height: 10px;"></div>
+
+  <div>
+    <button mat-button (click)="inp.click()">
+      Choose files
+    </button>
+  </div>
+  <input type="file"
+         #inp
+         [multiple]="false"
+         (change)="onFileChange($event)"
+         style="display:none" />
+</div>
