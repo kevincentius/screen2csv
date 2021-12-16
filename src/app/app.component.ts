@@ -181,7 +181,7 @@ export class AppComponent {
         img.onload = () => {
           canvas.width = img.width * this.config.scale;
           canvas.height = img.height * this.config.scale;
-          ctx.filter = 'invert(1)';
+          ctx.filter = 'invert(1) contrast(200%)';
           ctx.drawImage(img, 0, 0, img.width * this.config.scale, img.height * this.config.scale);
           resolve(canvas.toDataURL());
         }
