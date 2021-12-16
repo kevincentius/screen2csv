@@ -8,7 +8,7 @@ export class IdbService {
 
   private db: any;
 
-  private resetEverytime = false;
+  private resetEverytime = true;
 
   async init() {
     return new Promise((resolve, reject) => {

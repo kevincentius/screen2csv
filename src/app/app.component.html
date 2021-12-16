@@ -43,6 +43,11 @@ Processed ({{processedCount}} / {{inputs.length * config.boxes.length}})
       <div class="config-content"><input class="config-long-input" [(ngModel)]="config.boxes[selectedBox].regex"/></div>
     </div>
 
+    <div class="config-row">
+      <div class="config-caption">headers</div>
+      <div class="config-content"><input class="config-long-input" [(ngModel)]="config.headers"/></div>
+    </div>
+
     <button (click)="downloadConfig()">Save configuration</button>
     <button (click)="uploadConfig()">Load configuration</button>
     <button (click)="saveConfig()" title="The current config will be stored locally on your computer and will be loaded every time you visit this website.">Set as default</button>
@@ -64,7 +69,10 @@ Processed ({{processedCount}} / {{inputs.length * config.boxes.length}})
 <ng-container *ngIf="inputs.length > 0">
   <div>Extraction result:</div>
 
-  <table>
+  <table class='extraction-result'>
+    <tr>
+      <th *ngFor="let header of config.headers.split(',')">{{header}}</th>
+    </tr>
     <tr *ngFor="let row of inputs[selectedInput].parseResult">
       <td *ngFor="let cell of row">{{cell}}</td>
     </tr>

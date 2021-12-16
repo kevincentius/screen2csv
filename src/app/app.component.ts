@@ -14,6 +14,7 @@ interface Config {
   boxes: Box[];
   scale: number;
   invert: boolean;
+  headers: string;
 }
 
 interface InputData {
@@ -37,11 +38,12 @@ export class AppComponent {
         y: 175,
         w: 837,
         h: 850,
-        regex: '(.+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+)',
+        regex: '(.+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+)/([0-9:.]+)',
       }
     ],
     scale: 1,
     invert: true,
+    headers: 'file,#,player,score,bpm,cmb,sent,spm,block,recv',
   }
 
   inputs: InputData[] = [];

@@ -53,3 +53,14 @@
 .config-long-input {
   width: 100%;
 }
+
+
+
+.extraction-result {
+  border-collapse: collapse;
+
+  td, th {
+    border: 1px solid black;
+    padding: 2px 10px;
+  }
+}
