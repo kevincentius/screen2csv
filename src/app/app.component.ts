@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { createWorker } from 'tesseract.js';
 import { IdbService } from './services/idb.service';
 
@@ -34,16 +35,16 @@ export class AppComponent {
   config: Config = {
     boxes: [
       {
-        x: 960,
-        y: 175,
-        w: 837,
-        h: 850,
-        regex: '(.+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+) ([0-9:.]+)/([0-9:.]+)',
+        x: 100,
+        y: 200,
+        w: 300,
+        h: 400,
+        regex: '(.*)',
       }
     ],
     scale: 1,
     invert: true,
-    headers: 'file,#,player,score,bpm,cmb,sent,spm,block,recv',
+    headers: 'file,#,text',
   }
 
   inputs: InputData[] = [];
@@ -58,7 +59,8 @@ export class AppComponent {
   processIsRunning = false;
 
   constructor(
-    private idbService: IdbService
+    private idbService: IdbService,
+    private titleService: Title,
   ) {}
 
   async ngOnInit() {
@@ -131,6 +133,8 @@ export class AppComponent {
       }
 
       this.processedCount++;
+      
+      this.updateTitle();
     }
 
     this.processIsRunning = false;
@@ -174,6 +178,8 @@ export class AppComponent {
     this.inputs.push(inputData);
     this.selectedInput = this.inputs.length - 1;
     
+    this.updateTitle();
+
     await this.processRemaining();
   }
 
@@ -205,6 +211,10 @@ export class AppComponent {
         this.config = JSON.parse(reader.result as string)
       });
     }
+  }
+
+  updateTitle() {
+    this.titleService.setTitle(this.processedCount + ' / ' + this.inputs.length);
   }
 }
 
