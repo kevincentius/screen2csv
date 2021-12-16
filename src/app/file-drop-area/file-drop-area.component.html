@@ -1,6 +1,7 @@
 <div class="droparea" [class.drag-indicator]="dragIndicator" (drop)="onDrop($event)">
   <div *ngIf="!files || files.length == 0" class="hint">
-    Drop files here...
+    <div>take a screenshot and paste here (Ctrl+V)</div>
+    <div>or drop screenshot files here</div>
   </div>
 
   <ng-container *ngIf="files">
@@ -19,7 +20,7 @@
 
   <div>
     <button mat-button (click)="inp.click()">
-      Choose files
+      or browse local files
     </button>
   </div>
   <input type="file"

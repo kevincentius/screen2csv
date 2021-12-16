@@ -3,16 +3,26 @@
   height: 50px;
 }
 
+.subtitle {
+  font-weight: bold;
+  
+}
+
 .preview {
   position: relative;
-  // scale: 0.7;
-  zoom: 0.5;
 }
 
 .box {
   position: absolute;
   border: solid red 1px;
   background: #f004;
+  pointer-events: none;
+}
+
+.preview-box {
+  @extend .box;
+  border: solid blue 1px;
+  background: #00f4;
 }
 
 .hint {
@@ -39,11 +49,12 @@
 
 .config-row {
   display: flex;
+  gap: 6px;
 }
 
 .config-caption {
-  padding-right: 10px;
-  width: 30px;
+  width: 50px;
+  text-align: right;
 }
 
 .config-content {

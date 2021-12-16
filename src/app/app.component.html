@@ -2,88 +2,133 @@
 
 <div class="v-spacer"></div>
 
-<!-- config -->
-<div>
-  <div>Configuration</div>
-
-  <div>
-    <input type="checkbox" [(ngModel)]="config.invert" />
-    Invert colors <span class="hint">(this is required if the text is light and the background is dark)</span>
-  </div>
-
-  <div *ngFor="let box of config.boxes; let i=index">
-    <span class="box-tab-header" [class.selected]="i==selectedBox">{{i}}</span>
-  </div>
-
-  <div class="config-row">
-    <div class="config-caption">x</div>
-    <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].x" /></div>
-  </div>
-
-  <div class="config-row">
-    <div class="config-caption">y</div>
-    <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].y" /></div>
-  </div>
-
-  <div class="config-row">
-    <div class="config-caption">w</div>
-    <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].w" /></div>
-  </div>
-
-  <div class="config-row">
-    <div class="config-caption">h</div>
-    <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].h" /></div>
-  </div>
-
-  <div class="config-row">
-    <div class="config-caption">regex</div>
-    <div class="config-content"><input class="config-long-input" [(ngModel)]="config.boxes[selectedBox].regex" />
+<div style="display: flex; gap: 100px;">
+  <div style="flex-grow: 1;">
+    <!-- config -->
+    <div>
+      <div class="subtitle">Configuration</div>
+  
+      <div>
+        <input type="checkbox" [(ngModel)]="config.invert" />
+        Invert colors <span class="hint">(text must be darker than the background. Otherwise, please invert the colors)</span>
+      </div>
+  
+      <div title="remove spaces at the start and end of CSV cells">
+        <input type="checkbox" [(ngModel)]="config.trim" />
+        Trim spaces
+      </div>
+  
+      <div *ngFor="let box of config.boxes; let i=index">
+        <span class="box-tab-header" [class.selected]="i==selectedBox">{{i}}</span>
+      </div>
+  
+      <div style="display: flex; gap: 50px;">
+        <div style="width: 120px">
+          <div class="config-row">
+            <div class="config-caption">x</div>
+            <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].x" /></div>
+          </div>
+        
+          <div class="config-row">
+            <div class="config-caption">y</div>
+            <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].y" /></div>
+          </div>
+        
+          <div class="config-row">
+            <div class="config-caption">w</div>
+            <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].w" /></div>
+          </div>
+        
+          <div class="config-row">
+            <div class="config-caption">h</div>
+            <div class="config-content"><input class="config-short-input" [(ngModel)]="config.boxes[selectedBox].h" /></div>
+          </div>
+        </div>
+  
+        <div style="flex-grow: 1;">
+          <div class="config-row">
+            <div class="config-caption">regex</div>
+            <div class="config-content"><input class="config-long-input" [(ngModel)]="config.boxes[selectedBox].regex" />
+            </div>
+          </div>
+  
+          <div class="config-row">
+            <div class="config-caption">headers</div>
+            <div class="config-content"><input class="config-long-input" [(ngModel)]="config.headers" /></div>
+          </div>
+        </div>
+      </div>
+      <button (click)="recompute()" [disabled]="processIsRunning">Apply</button>
+      <button (click)="downloadConfig()" [disabled]="processIsRunning">Save configuration</button>
+      <button (click)="uploadConfig()" [disabled]="processIsRunning">Load configuration</button>
+      <!-- <button (click)="saveConfig()"
+        title="The current config will be stored locally on your computer and will be loaded every time you visit this website.">
+        Set as default</button> -->
     </div>
+  
+    <div class="v-spacer"></div>
+  
+    <!-- zoom -->
+    <div>
+      <input type="range" id="volume" name="volume"
+            min="-40" max="10" [ngModel]="zoomExp" (mousemove)="onZoomExpChange($event)">
+      <label for="volume">Volume</label>
+    </div>
+
+    <!-- preview -->
+    <div *ngIf="inputs.length > 0 && inputs[selectedInput]" class="preview" [style.zoom]="zoom">
+      <div *ngFor="let box of config.boxes; let i=index" class="box" [style.left]="box.x + 'px'"
+        [style.top]="box.y + 'px'" [style.width]="box.w + 'px'" [style.height]="box.h + 'px'">
+      </div>
+  
+      <div class="preview-box"
+        *ngIf="previewBox"
+        [style.left]="previewBox.x + 'px'"
+        [style.top]="previewBox.y + 'px'"
+        [style.width]="previewBox.w + 'px'"
+        [style.height]="previewBox.h + 'px'"
+      ></div>
+  
+      <img src="{{inputs[selectedInput].imgUrl}}"
+        draggable="false"
+        (mousedown)="onMouseDown($event)"
+        (mouseup)="onMouseUp($event)"
+        (mousemove)="onMouseMove($event)"
+      />
+    </div>
+  
+    <div class="v-spacer"></div>
+  
   </div>
 
-  <div class="config-row">
-    <div class="config-caption">headers</div>
-    <div class="config-content"><input class="config-long-input" [(ngModel)]="config.headers" /></div>
+  <div style="flex-grow: 1;">
+    <!-- Results -->
+    <div class="subtitle">
+      Processed ({{processedCount}} / {{inputs.length * config.boxes.length}})
+    </div>
+  
+    <ng-container *ngIf="inputs.length > 0">
+      <div>Extraction result:</div>
+  
+      <table class='extraction-result'>
+        <tr>
+          <th *ngFor="let header of config.headers.split(',')">{{header}}</th>
+        </tr>
+        <tr *ngFor="let row of inputs[selectedInput].parseResult">
+          <td *ngFor="let cell of row">{{cell}}</td>
+        </tr>
+      </table>
+    
+      <div>
+        <textarea *ngFor="let text of inputs[selectedInput].extractedText" rows="6" [contentEditable]="false" style="width: 100%;">{{text}}</textarea>
+      </div>
+    </ng-container>
+
+    <button (click)="downloadAsCsv()">Download CSV</button>
   </div>
-
-  <button (click)="downloadConfig()">Save configuration</button>
-  <button (click)="uploadConfig()">Load configuration</button>
-  <button (click)="saveConfig()"
-    title="The current config will be stored locally on your computer and will be loaded every time you visit this website.">Set
-    as default</button>
 </div>
 
-<div class="v-spacer"></div>
 
-<!-- preview -->
-<div *ngIf="inputs.length > 0 && inputs[selectedInput]" class="preview">
-  <div *ngFor="let box of config.boxes; let i=index" class="box" [style.left]="box.x + 'px'"
-    [style.top]="box.y + 'px'" [style.width]="box.w + 'px'" [style.height]="box.h + 'px'">
-  </div>
 
-  <img src="{{inputs[selectedInput].imgUrl}}" />
-</div>
-
-<div class="v-spacer"></div>
-
-<div>
-  Processed ({{processedCount}} / {{inputs.length * config.boxes.length}})
-</div>
-
-<ng-container *ngIf="inputs.length > 0">
-  <div>Extraction result:</div>
-
-  <table class='extraction-result'>
-    <tr>
-      <th *ngFor="let header of config.headers.split(',')">{{header}}</th>
-    </tr>
-    <tr *ngFor="let row of inputs[selectedInput].parseResult">
-      <td *ngFor="let cell of row">{{cell}}</td>
-    </tr>
-  </table>
-</ng-container>
-
-<button (click)="downloadAsCsv()">Download CSV</button>
-
-<input #fileDialogInput id="file-input" type="file" name="name" style="display: none;"
-  (change)="onLoadConfig($event)" />
+<!-- Invisible file dialog input -->
+<input #fileDialogInput id="file-input" type="file" name="name" style="display: none;" (change)="onLoadConfig($event)" />

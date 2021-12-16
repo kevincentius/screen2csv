@@ -15,12 +15,14 @@ interface Config {
   boxes: Box[];
   scale: number;
   invert: boolean;
+  trim: boolean;
   headers: string;
 }
 
 interface InputData {
   name: string;
   imgUrl?: string;
+  extractedText?: string[];
   parseResult?: string[][];
 }
 
@@ -31,6 +33,10 @@ interface InputData {
 })
 export class AppComponent {
   @ViewChild('fileDialogInput') fileDialogInput!: ElementRef<HTMLInputElement>;
+
+  zoomExp = -10;
+  zoomBase = 0.95;
+  zoom = Math.pow(this.zoomBase, this.zoomExp);
 
   config: Config = {
     boxes: [
@@ -44,6 +50,7 @@ export class AppComponent {
     ],
     scale: 1,
     invert: true,
+    trim: true,
     headers: 'file,#,text',
   }
 
@@ -54,10 +61,13 @@ export class AppComponent {
   selectedBox = 0;
   processedCount = 0;
 
-  csvData: string[][] = [];
+  // csvData: string[][] = [];
 
   processIsRunning = false;
 
+  boxStartPos: {x: number, y: number} | null = null;
+  previewBox: any = null;
+  
   constructor(
     private idbService: IdbService,
     private titleService: Title,
@@ -103,6 +113,7 @@ export class AppComponent {
       const inp = this.inputs[this.processedCount];
 
       // process each box
+      inp.extractedText = [];
       inp.parseResult = [];
       for (let boxIndex = 0; boxIndex < this.config.boxes.length; boxIndex++) {
         const box = this.config.boxes[boxIndex];
@@ -121,14 +132,20 @@ export class AppComponent {
           }
         });
         await worker.terminate();
+        inp.extractedText.push(text);
 
         var regexp = new RegExp(box.regex, "g");
         const matches = [...text.matchAll(regexp)];
 
         const matchesCsv = matches.map(row => [...row]);
         matchesCsv.forEach(match => {
-          this.csvData.push([inp.name, boxIndex.toString(), ...match.slice(1)]);
-          inp.parseResult = [...inp.parseResult!, this.csvData[this.csvData.length - 1]];
+          if (match.join('').trim()) {
+            let row = [inp.name, boxIndex.toString(), ...match.slice(1)];
+            if (this.config.trim) {
+              row = row.map(val => val.trim());
+            }
+            inp.parseResult = [...inp.parseResult!, row];
+          }
         });
       }
 
@@ -183,8 +200,12 @@ export class AppComponent {
     await this.processRemaining();
   }
 
-  async downloadAsCsv() {    
-    downloadBlob(arrayToCsv(this.csvData), 'export.csv', 'text/csv;charset=utf-8;');
+  async downloadAsCsv() {   
+    const csvData = this.inputs.map(inp => inp.parseResult!).flat();
+    if (this.config.headers) {
+      csvData.unshift(this.config.headers.split(','));
+    }
+    downloadBlob(arrayToCsv(csvData), 'export.csv', 'text/csv;charset=utf-8;');
   }
 
   downloadConfig() {
@@ -215,6 +236,55 @@ export class AppComponent {
 
   updateTitle() {
     this.titleService.setTitle(this.processedCount + ' / ' + this.inputs.length);
+  }
+
+  onMouseDown(event: MouseEvent) {
+    this.boxStartPos = { x: event.offsetX / this.zoom, y: event.offsetY / this.zoom };
+  }
+
+  onMouseMove(event: MouseEvent) {
+    if (this.boxStartPos) {
+      const x1 = Math.min(this.boxStartPos.x, event.offsetX / this.zoom);
+      const x2 = Math.max(this.boxStartPos.x, event.offsetX / this.zoom);
+      const y1 = Math.min(this.boxStartPos.y, event.offsetY / this.zoom);
+      const y2 = Math.max(this.boxStartPos.y, event.offsetY / this.zoom);
+
+      this.previewBox = {
+        x: x1,
+        y: y1,
+        w: x2 - x1,
+        h: y2 - y1,
+      }
+    }
+  }
+
+  onMouseUp(event: MouseEvent) {
+    if (this.previewBox) {
+      setTimeout(() => {
+        this.config.boxes[this.selectedBox].x = this.previewBox.x;
+        this.config.boxes[this.selectedBox].y = this.previewBox.y;
+        this.config.boxes[this.selectedBox].w = this.previewBox.w;
+        this.config.boxes[this.selectedBox].h = this.previewBox.h;
+  
+        this.boxStartPos = null;
+        this.previewBox = null;
+      });
+    }
+  }
+
+  recompute() {
+    this.inputs.forEach(inp => {
+      inp.extractedText = undefined;
+      inp.parseResult = undefined;
+    });
+    this.processedCount = 0;
+    this.processRemaining();
+  }
+
+  onZoomExpChange(event: any) {
+    console.log(event.target.value);
+    this.zoomExp = event.target.value;
+    this.zoom = Math.pow(0.9, -this.zoomExp);
   }
 }
 
